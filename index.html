@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Catálogo Digital</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="description" content="Catálogo digital interativo para dispositivos móveis">
+    
+    <!-- Scripts necessários -->
+    <script type="text/javascript" src="extras/jquery.min.1.7.js"></script>
+    <script type="text/javascript" src="extras/modernizr.2.5.3.min.js"></script>
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" type="text/css" href="fa/css/font-awesome.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: rgb(24, 23, 110);
+            background: linear-gradient(135deg, rgb(24, 23, 110) 0%, rgb(45, 44, 130) 100%);
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            user-select: none;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+            /* CRÍTICO: Previne comportamento padrão do touch */
+            touch-action: none;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            text-align: center;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .logo-link {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        
+        .logo-link:hover {
+            transform: scale(1.05);
+        }
+        
+        .logo {
+            height: 60px;
+            width: auto;
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+            cursor: pointer;
+        }
+        
+        .catalog-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 15px;
+            overflow: hidden;
+        }
+        
+        .page-viewer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 400px;
+            max-height: 600px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            overflow: hidden;
+            /* CRÍTICO: Permite pointer events e desabilita zoom nativo */
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        .page-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .zoom-container {
+            width: 100%;
+            height: 100%;
+            transform-origin: center center;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+        
+        .zoom-container.zooming {
+            transition: none;
+        }
+        
+        .page-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 12px;
+            pointer-events: none;
+        }
+        
+        /* Áreas de toque reduzidas para navegação (estilo Instagram Stories) */
+        .touch-area {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 12.5%;
+            z-index: 150;
+            background: transparent;
+            cursor: pointer;
+        }
+        
+        .touch-area-left {
+            left: 0;
+        }
+        
+        .touch-area-right {
+            right: 0;
+        }
+        
+
+        
+        /* Feedback visual sutil para as áreas de toque */
+        .touch-area:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Controles de navegação - agora ocultos por padrão no mobile */
+        .nav-controls {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        /* Mostrar controles apenas no desktop */
+        @media (min-width: 769px) {
+            .nav-controls {
+                opacity: 0.6;
+                pointer-events: auto;
+            }
+            
+            .nav-controls:hover {
+                opacity: 1;
+            }
+            
+            .touch-area {
+                display: none;
+            }
+        }
+        
+        .nav-prev {
+            left: 10px;
+        }
+        
+        .nav-next {
+            right: 10px;
+        }
+        
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-btn:hover {
+            background: white;
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .nav-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        /* Indicador de página */
+        .page-indicator {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #333;
+            z-index: 200;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        /* Footer */
+        .footer {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            z-index: 1000;
+        }
+        
+        /* Loading indicator */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            color: #333;
+            z-index: 9999;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        /* Touch feedback indicators */
+        .touch-feedback {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 300;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .touch-feedback.left {
+            left: 20px;
+        }
+        
+        .touch-feedback.right {
+            right: 20px;
+        }
+        
+        .touch-feedback.show {
+            opacity: 1;
+        }
+        
+        /* Transição de página */
+        .page-content.changing {
+            opacity: 0.7;
+            transform: scale(0.95);
+        }
+        
+        /* Controles de zoom */
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 300;
+            pointer-events: none;
+        }
+        
+        .zoom-controls.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .zoom-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+        }
+        
+        .zoom-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+        
+        .zoom-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .zoom-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        /* Indicador de zoom */
+        .zoom-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 300;
+            pointer-events: none;
+        }
+        
+        .zoom-indicator.visible {
+            opacity: 1;
+        }
+        
+        /* Responsividade para controles de zoom */
+        @media (max-width: 768px) {
+            /* Ajustar container para não sobrepor footer */
+            .catalog-container {
+                padding: 15px 15px 80px 15px; /* Adicionar padding-bottom para o footer */
+            }
+            
+            .zoom-controls {
+                bottom: 100px;
+                right: 15px;
+                gap: 8px;
+            }
+            
+            .zoom-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+            
+            .zoom-indicator {
+                top: 15px;
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            
+            /* Garantir que o footer seja visível no mobile */
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
+                padding: 12px 15px;
+                font-size: 12px;
+                z-index: 1000;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            /* Ajustar indicador de página para não sobrepor o footer */
+            .page-indicator {
+                bottom: 60px;
+            }
+            
+            /* Ajustar tamanho da logo no mobile */
+            .logo {
+                height: 50px;
+            }
+        }
+        
+   
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header com Logo clicável -->
+        <div class="header">
+            <a href="https://linktr.ee/dheytecnicaindustria" target="_blank" class="logo-link" title="Visite nosso site">
+                <img src="logo.png" alt="Dheytecnica" class="logo">
+            </a>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div id="loading" class="loading">Carregando catálogo...</div>
+        
+
+        
+        <!-- Touch feedback indicators -->
+        <div id="touchFeedbackLeft" class="touch-feedback left">← Anterior</div>
+        <div id="touchFeedbackRight" class="touch-feedback right">Próxima →</div>
+        
+        <!-- Catalog container -->
+        <div class="catalog-container">
+            <div class="page-viewer" id="pageViewer">
+                <div class="page-content" id="pageContent">
+                    <div class="zoom-container" id="zoomContainer">
+                        <img class="page-image" id="pageImage" src="pages/1.jpg" alt="Página 1" draggable="false">
+                    </div>
+                </div>
+                
+                <!-- Controles de zoom -->
+                <div class="zoom-controls" id="zoomControls">
+                    <button class="zoom-btn zoom-in" id="zoomInBtn" aria-label="Ampliar imagem" title="Ampliar">+</button>
+                    <button class="zoom-btn zoom-out" id="zoomOutBtn" aria-label="Reduzir imagem" title="Reduzir">-</button>
+                    <button class="zoom-btn zoom-reset" id="zoomResetBtn" aria-label="Resetar zoom" title="Tamanho original">⌂</button>
+                </div>
+                
+                <!-- Indicador de zoom -->
+                <div class="zoom-indicator" id="zoomIndicator" role="status" aria-live="polite">100%</div>
+                
+                <!-- Áreas de toque invisíveis para navegação (mobile) - REDUZIDAS -->
+                <div class="touch-area touch-area-left" id="touchAreaLeft"></div>
+                <div class="touch-area touch-area-right" id="touchAreaRight"></div>
+            </div>
+            
+            <!-- Controles de navegação (desktop) -->
+            <div class="nav-controls nav-prev">
+                <button class="nav-btn" id="prevBtn" title="Página anterior">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <div class="nav-controls nav-next">
+                <button class="nav-btn" id="nextBtn" title="Próxima página">
+                    <i class="fa fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <!-- Indicador de página -->
+            <div class="page-indicator" id="pageIndicator">
+                Página 1 de 6
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div>Toque nas bordas para navegar • Duplo toque para ampliar</div>
+        </div>
+    </div>
+
+    <!-- Incluir ZoomManager -->
+    <script src="zoom-manager.js"></script>
+    
+    <script type="text/javascript">
+        // Configurações globais
+        var catalogConfig = {
+            currentPage: 1,
+            totalPages: 28,
+            
+            // Prevenção de conflitos
+            isNavigating: false,
+            
+            // Configurações de zoom
+            zoom: {
+                isActive: false,
+                level: 1,
+                manager: null
+            }
+        };
+        
+        // Elementos DOM
+        var $pageContent = null;
+        var $pageImage = null;
+        var $pageViewer = null;
+        
+        // Função para inicializar o catálogo
+        function initializeCatalog() {
+            $pageContent = $("#pageContent");
+            $pageImage = $("#pageImage");
+            $pageViewer = $("#pageViewer");
+            
+            // Esconder loading
+            $("#loading").fadeOut();
+            
+            // Inicializar controles
+            initializeControls();
+            initializeTouchNavigation();
+            initializeZoom(); // Nova função de zoom
+            updateNavigationButtons();
+            updatePageIndicator();
+            
+            // Atualizar título
+            document.title = catalogConfig.bookname;
+        }
+        
+        // Função para atualizar indicador de página
+        function updatePageIndicator() {
+            $("#pageIndicator").text("Página " + catalogConfig.currentPage + " de " + catalogConfig.totalPages);
+        }
+        
+        // Função para inicializar controles (desktop)
+        function initializeControls() {
+            // Botões de navegação (desktop)
+            $("#prevBtn").click(function() {
+                if (!catalogConfig.isNavigating) {
+                    navigateToPage(catalogConfig.currentPage - 1);
+                }
+            });
+            
+            $("#nextBtn").click(function() {
+                if (!catalogConfig.isNavigating) {
+                    navigateToPage(catalogConfig.currentPage + 1);
+                }
+            });
+        }
+        
+        // Função para inicializar navegação por toque (mobile)
+        function initializeTouchNavigation() {
+            // Área de toque esquerda (página anterior)
+            $("#touchAreaLeft").on("touchend click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (catalogConfig.currentPage > 1) {
+                    showTouchFeedback("left");
+                    navigateToPage(catalogConfig.currentPage - 1);
+                }
+            });
+            
+            // Área de toque direita (próxima página)
+            $("#touchAreaRight").on("touchend click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (catalogConfig.currentPage < catalogConfig.totalPages) {
+                    showTouchFeedback("right");
+                    navigateToPage(catalogConfig.currentPage + 1);
+                }
+            });
+            
+            // Prevenir propagação de eventos de toque nas áreas
+            $("#touchAreaLeft, #touchAreaRight").on("touchstart touchmove", function(e) {
+                e.stopPropagation();
+            });
+        }
+        
+        // Função para mostrar feedback visual do toque
+        function showTouchFeedback(side) {
+            var $feedback = side === 'left' ? $("#touchFeedbackLeft") : $("#touchFeedbackRight");
+            
+            $feedback.addClass('show');
+            setTimeout(function() {
+                $feedback.removeClass('show');
+            }, 800);
+        }
+        
+        // Função para navegar para uma página específica
+        function navigateToPage(pageNumber) {
+            if (pageNumber >= 1 && pageNumber <= catalogConfig.totalPages && 
+                pageNumber !== catalogConfig.currentPage && !catalogConfig.isNavigating) {
+                
+                catalogConfig.isNavigating = true;
+                
+                // Adicionar efeito de transição
+                $pageContent.addClass('changing');
+                
+                setTimeout(function() {
+                    catalogConfig.currentPage = pageNumber;
+                    
+                    // Atualizar imagem
+                    $pageImage.attr('src', 'pages/' + pageNumber + '.jpg');
+                    $pageImage.attr('alt', 'Página ' + pageNumber);
+                    
+                    updatePageIndicator();
+                    updateNavigationButtons();
+                    
+                    // Remover efeito de transição
+                    $pageContent.removeClass('changing');
+                    
+                    // Permitir nova navegação após delay
+                    setTimeout(function() {
+                        catalogConfig.isNavigating = false;
+                    }, 300);
+                }, 150);
+            }
+        }
+        
+        // Função para atualizar botões de navegação
+        function updateNavigationButtons() {
+            // Atualizar estado dos botões baseado na página atual
+            if (catalogConfig.currentPage <= 1) {
+                $("#prevBtn").addClass("disabled");
+            } else {
+                $("#prevBtn").removeClass("disabled");
+            }
+            
+            if (catalogConfig.currentPage >= catalogConfig.totalPages) {
+                $("#nextBtn").addClass("disabled");
+            } else {
+                $("#nextBtn").removeClass("disabled");
+            }
+        }
+        
+        // Função para inicializar o zoom
+        function initializeZoom() {
+            const pageViewer = document.getElementById('pageViewer');
+            
+            catalogConfig.zoom.manager = new ZoomManager(pageViewer, {
+                minZoom: 1,
+                maxZoom: 4,
+                zoomStep: 0.2,
+                doubleTapZoom: 2.5,
+                animationDuration: 300,
+                showControls: true,
+                showIndicator: true,
+                onZoomStart: function() {
+                    // Desabilitar navegação durante zoom
+                    catalogConfig.zoom.isActive = true;
+                    updateNavigationState();
+                },
+                onZoomEnd: function() {
+                    // Reabilitar navegação se zoom for resetado
+                    if (this.state.scale <= 1) {
+                        catalogConfig.zoom.isActive = false;
+                        updateNavigationState();
+                    }
+                },
+                onZoomChange: function(scale) {
+                    catalogConfig.zoom.level = scale;
+                    catalogConfig.zoom.isActive = scale > 1;
+                    updateNavigationState();
+                    updateFooterText();
+                }
+            });
+        }
+        
+        // Função para atualizar estado da navegação baseado no zoom
+        function updateNavigationState() {
+            const isZoomed = catalogConfig.zoom.isActive;
+            
+            // Controlar áreas de toque
+            const touchAreas = document.querySelectorAll('.touch-area');
+            touchAreas.forEach(area => {
+                area.style.pointerEvents = isZoomed ? 'none' : 'auto';
+                area.style.opacity = isZoomed ? '0.3' : '1';
+            });
+            
+            // Controlar botões de navegação
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                if (isZoomed) {
+                    btn.style.opacity = '0.3';
+                    btn.style.pointerEvents = 'none';
+                } else {
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                }
+            });
+        }
+        
+        // Função para atualizar texto do footer baseado no zoom
+        function updateFooterText() {
+            const footer = document.querySelector('.footer div');
+            const isZoomed = catalogConfig.zoom.level > 1;
+            
+            if (isZoomed) {
+                footer.textContent = 'Arraste para navegar na imagem • Toque duplo para resetar zoom';
+            } else {
+                footer.textContent = 'Toque nas bordas para navegar • Duplo toque para ampliar';
+            }
+        }
+        
+        // Atualizar função navigateToPage para resetar zoom
+        function navigateToPage(pageNumber) {
+            if (pageNumber >= 1 && pageNumber <= catalogConfig.totalPages && 
+                pageNumber !== catalogConfig.currentPage && !catalogConfig.isNavigating) {
+                
+                // Reset zoom antes de navegar
+                if (catalogConfig.zoom.manager) {
+                    catalogConfig.zoom.manager.reset();
+                }
+                
+                catalogConfig.isNavigating = true;
+                
+                // Adicionar efeito de transição
+                $pageContent.addClass('changing');
+                
+                setTimeout(function() {
+                    catalogConfig.currentPage = pageNumber;
+                    
+                    // Atualizar imagem
+                    $pageImage.attr('src', 'pages/' + pageNumber + '.jpg');
+                    $pageImage.attr('alt', 'Página ' + pageNumber);
+                    
+                    updatePageIndicator();
+                    updateNavigationButtons();
+                    
+                    // Remover efeito de transição
+                    $pageContent.removeClass('changing');
+                    
+                    // Permitir nova navegação após delay
+                    setTimeout(function() {
+                        catalogConfig.isNavigating = false;
+                    }, 300);
+                }, 150);
+            }
+        }
+
+        
+        // Inicializar quando o documento estiver pronto
+        $(document).ready(function() {
+            initializeCatalog();
+        });
+        
+        // Redimensionar responsivo
+        $(window).resize(function() {
+            catalogConfig.isMobile = window.innerWidth <= 768;
+        });
+    </script>
+</body>
+</html>
+

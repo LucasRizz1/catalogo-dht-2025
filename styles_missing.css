@@ -1,0 +1,50 @@
+        /* Loading indicator */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            color: #333;
+            z-index: 9999;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        /* Touch feedback indicators */
+        .touch-feedback {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 300;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .touch-feedback.left {
+            left: 20px;
+        }
+        
+        .touch-feedback.right {
+            right: 20px;
+        }
+        
+        .touch-feedback.show {
+            opacity: 1;
+        }
+        
+        /* Transição de página */
+        .page-content.changing {
+            opacity: 0.7;
+            transform: scale(0.95);
+        }
+        
+
