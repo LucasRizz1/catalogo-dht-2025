@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>DheyTécnica - Selecione seu Idioma</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="description" content="Selecione o idioma para acessar o catálogo digital da DheyTécnica">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background: rgb(24, 23, 110);
+            background: linear-gradient(135deg, rgb(24, 23, 110) 0%, rgb(45, 44, 130) 100%);
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .logo-container {
+            margin-bottom: 40px;
+        }
+        
+        .logo-link {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        
+        .logo-link:hover {
+            transform: scale(1.05);
+        }
+        
+        .logo {
+            height: 80px;
+            width: auto;
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+            cursor: pointer;
+        }
+        
+        .language-selector {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .title-section {
+            margin-bottom: 30px;
+        }
+        
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+        
+        .language-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .language-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .language-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .language-btn:active {
+            transform: translateY(0);
+        }
+        
+        .language-btn.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .language-btn.disabled:hover {
+            transform: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .flag-icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .footer-info {
+            margin-top: 30px;
+            font-size: 12px;
+            opacity: 0.7;
+            text-align: center;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 480px) {
+            .container {
+                max-width: 350px;
+            }
+            
+            .logo {
+                height: 70px;
+            }
+            
+            .language-selector {
+                padding: 25px 20px;
+            }
+            
+            .title {
+                font-size: 18px;
+            }
+            
+            .language-btn {
+                font-size: 15px;
+                padding: 14px 18px;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .container {
+                max-width: 320px;
+            }
+            
+            .logo {
+                height: 60px;
+            }
+            
+            .language-selector {
+                padding: 20px 15px;
+            }
+            
+            .title {
+                font-size: 16px;
+            }
+            
+            .language-btn {
+                font-size: 14px;
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo da empresa -->
+        <div class="logo-container">
+            <a href="https://linktr.ee/dheytecnicaindustria" target="_blank" class="logo-link" title="Visite nosso LinkTree">
+                <img src="logo.png" alt="DheyTécnica" class="logo">
+            </a>
+        </div>
+        
+        <!-- Seletor de idioma -->
+        <div class="language-selector">
+            <div class="title-section">
+                <h1 class="title">Selecione o seu idioma</h1>
+                <div class="subtitle">
+                    Select your language<br>
+                    Selecciona tu idioma
+                </div>
+            </div>
+            
+            <div class="language-buttons">
+                <a href="index.html" class="language-btn">
+                    <span class="flag-icon">🇧🇷</span>
+                    Catálogo DheyTécnica PT-BR
+                </a>
+                
+                <a href="https://github.com/LucasRizz1/catalogo-dht-2025" target="_blank" class="language-btn disabled" title="Em breve">
+                    <span class="flag-icon">🇺🇸</span>
+                    Catálogo DheyTécnica EN
+                </a>
+                
+                <a href="https://github.com/LucasRizz1/catalogo-dht-2025" target="_blank" class="language-btn disabled" title="Em breve">
+                    <span class="flag-icon">🇪🇸</span>
+                    Catálogo DheyTécnica ES
+                </a>
+            </div>
+            
+            <div class="footer-info">
+                Equipamentos Industriais de Alta Qualidade
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Animação de entrada suave
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                container.style.transition = 'all 0.8s ease-out';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+        
+        // Feedback visual para botões desabilitados
+        document.querySelectorAll('.language-btn.disabled').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Efeito visual de "shake"
+                this.style.animation = 'shake 0.5s ease-in-out';
+                
+                setTimeout(() => {
+                    this.style.animation = '';
+                }, 500);
+            });
+        });
+        
+        // Adicionar animação de shake
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
+

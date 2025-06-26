@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Catalogo Dheytécnica PT-BR</title>
+    <title>Catálogo Digital</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="description" content="Catálogo digital interativo para dispositivos móveis">
     
@@ -43,11 +43,43 @@
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             padding: 15px 20px;
-            text-align: center;
             z-index: 1000;
+        }
+        
+        .header-content {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .home-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .home-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .header-spacer {
+            width: 40px; /* Mesmo tamanho do botão home para centralizar a logo */
         }
         
         .logo-link {
@@ -410,6 +442,17 @@
             .logo {
                 height: 50px;
             }
+            
+            /* Ajustar botão home no mobile */
+            .home-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+            
+            .header-spacer {
+                width: 35px;
+            }
         }
         
    
@@ -417,11 +460,19 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header com Logo clicável -->
+        <!-- Header com Logo clicável e botão Home -->
         <div class="header">
-            <a href="https://linktr.ee/dheytecnicaindustria" target="_blank" class="logo-link" title="Visite nosso site">
-                <img src="logo.png" alt="Dheytecnica" class="logo">
-            </a>
+            <div class="header-content">
+                <button class="home-btn" id="homeBtn" title="Voltar ao menu de idiomas">
+                    <i class="fa fa-home"></i>
+                </button>
+                
+                <a href="https://linktr.ee/dheytecnicaindustria" target="_blank" class="logo-link" title="Visite nosso site">
+                    <img src="logo.png" alt="Dheytecnica" class="logo">
+                </a>
+                
+                <div class="header-spacer"></div>
+            </div>
         </div>
         
         <!-- Loading indicator -->
@@ -534,6 +585,11 @@
         
         // Função para inicializar controles (desktop)
         function initializeControls() {
+            // Botão Home
+            $("#homeBtn").click(function() {
+                window.location.href = 'homepage.html';
+            });
+            
             // Botões de navegação (desktop)
             $("#prevBtn").click(function() {
                 if (!catalogConfig.isNavigating) {
